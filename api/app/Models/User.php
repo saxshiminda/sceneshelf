@@ -6,6 +6,7 @@ namespace App\Models;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -19,6 +20,7 @@ use Laravel\Sanctum\HasApiTokens;
     'tmdb_username',
     'tmdb_session_id',
     'avatar_path',
+    'profile_photo_path',
     'include_adult',
     'iso_639_1',
     'iso_3166_1',
@@ -28,6 +30,13 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
+
+    /**
+     * @var list<string>
+     */
+    protected $appends = [
+        'profile_photo_url',
+    ];
 
     /**
      * Get the attributes that should be cast.
@@ -43,5 +52,17 @@ class User extends Authenticatable
             'include_adult' => 'boolean',
             'tmdb_id' => 'integer',
         ];
+    }
+
+    /**
+     * Public URL path for an uploaded profile photo (same-origin via /storage).
+     */
+    protected function profilePhotoUrl(): Attribute
+    {
+        return Attribute::get(
+            fn (): ?string => $this->profile_photo_path
+                ? '/storage/'.$this->profile_photo_path
+                : null,
+        );
     }
 }

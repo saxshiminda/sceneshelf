@@ -34,6 +34,18 @@ export function getUser(options?: RequestOptions) {
   return backend.get<User>('/api/user', options)
 }
 
+export async function uploadProfilePhoto(file: File, options?: RequestOptions) {
+  await getCsrfCookie(options)
+  const body = new FormData()
+  body.append('photo', file)
+  return backend.post<User>('/api/user/profile-photo', body, options)
+}
+
+export async function deleteProfilePhoto(options?: RequestOptions) {
+  await getCsrfCookie(options)
+  return backend.delete<User>('/api/user/profile-photo', options)
+}
+
 /** Sync a TMDB session into Laravel (creates/updates user + Sanctum login). */
 export async function syncTmdbSession(sessionId: string, options?: RequestOptions) {
   await getCsrfCookie(options)

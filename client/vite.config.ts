@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         // Same-origin in the browser → no CORS / referrer cross-origin issues with Sanctum cookies
-        '^/(api|sanctum|login|logout|register|auth|forgot-password|reset-password|email|verify-email|up)':
+        '^/(api|sanctum|login|logout|register|auth|forgot-password|reset-password|email|verify-email|storage|up)':
           {
             target: apiTarget,
             changeOrigin: true,

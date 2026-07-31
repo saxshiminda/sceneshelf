@@ -10,6 +10,7 @@ import {
 import {
   createRequestToken,
   createSession,
+  deleteProfilePhoto,
   deleteSession,
   getUser,
   login as apiLogin,
@@ -17,6 +18,7 @@ import {
   register as apiRegister,
   syncTmdbSession,
   tmdbApproveUrl,
+  uploadProfilePhoto,
 } from '../api/auth'
 import { posterUrl } from '../api/movies'
 import { ApiError } from '../lib/http'
@@ -40,6 +42,8 @@ interface AuthContextValue {
   completeRedirectLogin: (requestToken: string) => Promise<void>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
+  uploadAvatar: (file: File) => Promise<void>
+  removeAvatar: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -62,8 +66,10 @@ function persistTmdbSession(sessionId: string | null) {
 }
 
 function userAvatar(user: User | null): string | null {
-  if (!user?.avatar_path) return null
-  return posterUrl(user.avatar_path, 'w342')
+  if (!user) return null
+  if (user.profile_photo_url) return user.profile_photo_url
+  if (user.avatar_path) return posterUrl(user.avatar_path, 'w342')
+  return null
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -156,6 +162,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [tmdbSessionId])
 
+  const uploadAvatar = useCallback(async (file: File) => {
+    const next = await uploadProfilePhoto(file)
+    setUser(next)
+  }, [])
+
+  const removeAvatar = useCallback(async () => {
+    const next = await deleteProfilePhoto()
+    setUser(next)
+  }, [])
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
@@ -169,6 +185,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completeRedirectLogin,
       logout,
       refreshUser,
+      uploadAvatar,
+      removeAvatar,
     }),
     [
       user,
@@ -180,6 +198,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completeRedirectLogin,
       logout,
       refreshUser,
+      uploadAvatar,
+      removeAvatar,
     ],
   )
 

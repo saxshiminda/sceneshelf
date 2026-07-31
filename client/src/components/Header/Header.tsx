@@ -1,6 +1,6 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { Dialog, DialogPanel } from '@headlessui/react'
+import { Dialog, DialogPanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { Bars3Icon, MoonIcon, SunIcon, UserCircleIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import type { Navigation } from '../../interfaces/Navigation'
 import { useTheme } from '../../theme/ThemeProvider'
@@ -12,11 +12,30 @@ const navigation: Navigation[] = [
   { name: 'My Shelf', href: '/myshelf' },
 ]
 
+function AvatarButton({ avatarUrl, className }: { avatarUrl: string | null; className?: string }) {
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt=""
+        className={`size-8 rounded-full object-cover ring-1 ring-border ${className ?? ''}`}
+      />
+    )
+  }
+  return <UserCircleIcon className={`size-7 text-fg-secondary ${className ?? ''}`} />
+}
+
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const location = useLocation()
+  const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
-  const { user, avatarUrl, isAuthenticated } = useAuth()
+  const { avatarUrl, isAuthenticated, logout } = useAuth()
+
+  async function onLogout() {
+    await logout()
+    navigate('/home', { replace: true })
+  }
 
   return (
     <>
@@ -66,24 +85,46 @@ export default function Header() {
             </button>
 
             {isAuthenticated ? (
-              <Link
-                to="/profile"
-                className="hidden items-center gap-2 rounded-full py-1 pr-1 pl-2 transition hover:bg-elevated sm:flex"
-                aria-label="Profile"
-              >
-                <span className="max-w-[8rem] truncate text-sm text-fg-secondary">
-                  {user?.tmdb_username || user?.name}
-                </span>
-                {avatarUrl ? (
-                  <img
-                    src={avatarUrl}
-                    alt=""
-                    className="size-8 rounded-full object-cover ring-1 ring-border"
-                  />
-                ) : (
-                  <UserCircleIcon className="size-7 text-fg-secondary" />
-                )}
-              </Link>
+              <Menu as="div" className="relative hidden sm:block">
+                <MenuButton
+                  className="rounded-full p-0.5 transition hover:bg-elevated"
+                  aria-label="Account menu"
+                >
+                  <AvatarButton avatarUrl={avatarUrl} />
+                </MenuButton>
+                <MenuItems
+                  transition
+                  anchor="bottom end"
+                  className="z-50 mt-2 w-44 origin-top-right rounded-md border border-border bg-surface py-1 shadow-lg outline-none transition data-closed:scale-95 data-closed:opacity-0"
+                >
+                  <MenuItem>
+                    <Link
+                      to="/profile"
+                      className="block px-3 py-2 text-sm text-fg data-focus:bg-elevated"
+                    >
+                      Profile
+                    </Link>
+                  </MenuItem>
+                  <MenuItem>
+                    <Link
+                      to="/profile/settings"
+                      className="block px-3 py-2 text-sm text-fg data-focus:bg-elevated"
+                    >
+                      Settings
+                    </Link>
+                  </MenuItem>
+                  <div className="my-1 border-t border-border" />
+                  <MenuItem>
+                    <button
+                      type="button"
+                      onClick={onLogout}
+                      className="block w-full px-3 py-2 text-left text-sm text-fg data-focus:bg-elevated data-focus:text-red-400"
+                    >
+                      Log out
+                    </button>
+                  </MenuItem>
+                </MenuItems>
+              </Menu>
             ) : (
               <Link
                 to="/login"
@@ -153,6 +194,16 @@ export default function Header() {
                 >
                   Settings
                 </Link>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setMobileMenuOpen(false)
+                    await onLogout()
+                  }}
+                  className="block w-full rounded-lg px-3 py-2.5 text-left text-base text-fg hover:bg-elevated hover:text-red-400"
+                >
+                  Log out
+                </button>
               </>
             ) : (
               <Link

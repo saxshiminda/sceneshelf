@@ -8,6 +8,8 @@ export interface User {
   tmdb_id: number | null
   tmdb_username: string | null
   avatar_path: string | null
+  profile_photo_path: string | null
+  profile_photo_url: string | null
   include_adult: boolean
   iso_639_1: string | null
   iso_3166_1: string | null
