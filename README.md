@@ -20,10 +20,12 @@ composer install
 php artisan key:generate
 # Set TMDB_API_KEY in .env (same key as the client)
 php artisan migrate
-php artisan serve
+php artisan serve --host=127.0.0.1 --port=8000
 ```
 
-Defaults: `http://localhost:8000` with `FRONTEND_URL=http://localhost:5173`.
+If port 8000 is busy, use another port (e.g. `8001`) and set `VITE_API_PROXY_TARGET` in the client to match.
+
+Defaults: `FRONTEND_URL=http://localhost:5173`.
 
 ### Client
 
@@ -34,7 +36,9 @@ npm install
 npm run dev
 ```
 
-Set `VITE_BACKEND_URL=http://localhost:8000` and your TMDB key in `.env.local`.
+Leave `VITE_BACKEND_URL` empty so the Vite dev server proxies Laravel (`/login`, `/sanctum`, `/api`, …). That keeps auth cookies same-origin and avoids cross-origin / CORS issues.
+
+Set your TMDB key and `VITE_API_PROXY_TARGET` (Laravel URL) in `.env.local`.
 
 ## Auth
 

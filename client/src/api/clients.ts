@@ -14,10 +14,10 @@ export const tmdb = createClient({
 
 /**
  * Laravel API (Breeze + Sanctum cookie session).
- * Base URL is the app origin (e.g. http://localhost:8000), not /api.
+ * In local dev, baseUrl is '' and Vite proxies to Laravel (same-origin cookies).
  */
 export const backend = createClient({
-  baseUrl: env.backendUrl || 'http://localhost:8000',
+  baseUrl: env.backendUrl,
   credentials: 'include',
   withXsrf: true,
   defaultHeaders: {
