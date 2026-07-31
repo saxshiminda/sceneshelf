@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { ApiError } from '../lib/http'
 
 export default function SignupPage() {
-  const { register, isAuthenticated, isLoading } = useAuth()
+  const { register, loginWithTmdb, isAuthenticated, isLoading } = useAuth()
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -12,6 +12,7 @@ export default function SignupPage() {
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
 
   if (!isLoading && isAuthenticated) {
     return <Navigate to="/profile" replace />
@@ -36,11 +37,24 @@ export default function SignupPage() {
     }
   }
 
+  async function onTmdbRedirect() {
+    setError('')
+    setRedirecting(true)
+    try {
+      await loginWithTmdb()
+    } catch (err) {
+      setRedirecting(false)
+      setError(err instanceof ApiError ? err.message : 'Could not start TMDB login.')
+    }
+  }
+
+  const busy = submitting || redirecting
+
   return (
     <div className="w-full max-w-md">
       <h1 className="font-display text-3xl text-fg">Create your shelf</h1>
       <p className="mt-2 text-sm text-fg-secondary">
-        Register an account to save titles and sync across devices.
+        Register with email, or connect a TMDB account.
       </p>
 
       <form onSubmit={onSubmit} className="mt-8 space-y-4">
@@ -108,12 +122,27 @@ export default function SignupPage() {
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled={busy}
           className="w-full rounded-md bg-brass py-3 text-sm font-semibold text-canvas hover:opacity-90 disabled:opacity-60"
         >
           {submitting ? 'Creating account…' : 'Sign up'}
         </button>
       </form>
+
+      <div className="my-6 flex items-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-xs text-fg-muted">or</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
+      <button
+        type="button"
+        onClick={onTmdbRedirect}
+        disabled={busy}
+        className="w-full rounded-md border border-border bg-elevated/40 py-3 text-sm text-fg transition hover:border-brass disabled:opacity-60"
+      >
+        {redirecting ? 'Redirecting…' : 'Sign up with TMDB'}
+      </button>
 
       <p className="mt-6 text-center text-sm text-fg-muted">
         Already have an account?{' '}

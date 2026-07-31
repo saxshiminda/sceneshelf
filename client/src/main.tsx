@@ -13,6 +13,7 @@ import MyShelf from './pages/MyShelf.tsx'
 import TitlePage from './pages/TitlePage.tsx'
 import LoginPage from './pages/LoginPage.tsx'
 import SignupPage from './pages/SignupPage.tsx'
+import AuthCallbackPage from './pages/AuthCallbackPage.tsx'
 import ProfilePage from './pages/ProfilePage.tsx'
 import ProfileSettingsPage from './pages/ProfileSettingsPage.tsx'
 
@@ -41,6 +42,7 @@ const router = createBrowserRouter([
     children: [
       { path: 'login', element: <LoginPage /> },
       { path: 'signup', element: <SignupPage /> },
+      { path: 'auth/callback', element: <AuthCallbackPage /> },
     ],
   },
 ])

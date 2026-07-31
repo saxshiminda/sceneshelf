@@ -6,6 +6,7 @@ export default function ProfileSettingsPage() {
   const { user, logout } = useAuth()
   const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
+  const isTmdb = Boolean(user?.tmdb_id)
 
   async function onLogout() {
     await logout()
@@ -36,15 +37,43 @@ export default function ProfileSettingsPage() {
         </div>
       </section>
 
-      <section>
-        <h2 className="font-display text-xl text-fg">Account</h2>
-        <p className="mt-1 text-sm text-fg-secondary">Signed in as {user?.email}.</p>
-      </section>
+      {isTmdb && (
+        <section>
+          <h2 className="font-display text-xl text-fg">TMDB preferences</h2>
+          <p className="mt-1 text-sm text-fg-secondary">
+            Synced from your TMDB account and stored in SceneShelf.
+          </p>
+          <dl className="mt-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-border/80 pb-4">
+              <dt className="text-sm text-fg">Include adult content</dt>
+              <dd className="text-sm text-fg-secondary">
+                {user?.include_adult ? 'Enabled' : 'Disabled'}
+              </dd>
+            </div>
+            <div className="flex items-center justify-between border-b border-border/80 pb-4">
+              <dt className="text-sm text-fg">Country</dt>
+              <dd className="text-sm text-fg-secondary">{user?.iso_3166_1 || '—'}</dd>
+            </div>
+            <div className="flex items-center justify-between border-b border-border/80 pb-4">
+              <dt className="text-sm text-fg">Language</dt>
+              <dd className="text-sm text-fg-secondary">{user?.iso_639_1 || '—'}</dd>
+            </div>
+          </dl>
+          <a
+            href="https://www.themoviedb.org/settings/profile"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 inline-block text-sm text-brass hover:underline"
+          >
+            Edit on TMDB
+          </a>
+        </section>
+      )}
 
       <section>
         <h2 className="font-display text-xl text-fg">Session</h2>
         <p className="mt-1 text-sm text-fg-secondary">
-          Sign out of SceneShelf on this browser.
+          Sign out of SceneShelf{isTmdb ? ' and disconnect TMDB on this browser' : ''}.
         </p>
         <button
           type="button"

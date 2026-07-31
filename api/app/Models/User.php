@@ -11,8 +11,19 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
+#[Fillable([
+    'name',
+    'email',
+    'password',
+    'tmdb_id',
+    'tmdb_username',
+    'tmdb_session_id',
+    'avatar_path',
+    'include_adult',
+    'iso_639_1',
+    'iso_3166_1',
+])]
+#[Hidden(['password', 'remember_token', 'tmdb_session_id'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -28,6 +39,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'tmdb_session_id' => 'encrypted',
+            'include_adult' => 'boolean',
+            'tmdb_id' => 'integer',
         ];
     }
 }

@@ -18,6 +18,7 @@ cd api
 cp .env.example .env
 composer install
 php artisan key:generate
+# Set TMDB_API_KEY in .env (same key as the client)
 php artisan migrate
 php artisan serve
 ```
@@ -37,9 +38,10 @@ Set `VITE_BACKEND_URL=http://localhost:8000` and your TMDB key in `.env.local`.
 
 ## Auth
 
-Laravel Breeze (SPA cookie sessions via Sanctum):
+Three ways to sign in:
 
-1. `GET /sanctum/csrf-cookie`
-2. `POST /register` or `POST /login`
-3. `GET /api/user`
-4. `POST /logout`
+1. **Register / login** — email + password (`POST /register`, `POST /login`)
+2. **TMDB credentials** — TMDB username + password on the login page
+3. **TMDB browser approve** — redirect to themoviedb.org, then `/auth/callback`
+
+TMDB flows call `POST /auth/tmdb` with a `session_id`. Laravel verifies it with TMDB, upserts the user (tmdb id, username, avatar, prefs), and starts a Sanctum session.

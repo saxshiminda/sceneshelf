@@ -16,7 +16,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const location = useLocation()
   const { theme, toggleTheme } = useTheme()
-  const { user, isAuthenticated } = useAuth()
+  const { user, avatarUrl, isAuthenticated } = useAuth()
 
   return (
     <>
@@ -72,9 +72,17 @@ export default function Header() {
                 aria-label="Profile"
               >
                 <span className="max-w-[8rem] truncate text-sm text-fg-secondary">
-                  {user?.name}
+                  {user?.tmdb_username || user?.name}
                 </span>
-                <UserCircleIcon className="size-7 text-fg-secondary" />
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt=""
+                    className="size-8 rounded-full object-cover ring-1 ring-border"
+                  />
+                ) : (
+                  <UserCircleIcon className="size-7 text-fg-secondary" />
+                )}
               </Link>
             ) : (
               <Link

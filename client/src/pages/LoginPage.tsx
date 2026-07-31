@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { ApiError } from '../lib/http'
 
 export default function LoginPage() {
-  const { login, isAuthenticated, isLoading } = useAuth()
+  const { login, loginWithTmdb, isAuthenticated, isLoading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const from =
@@ -20,12 +20,13 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
 
   if (!isLoading && isAuthenticated) {
     return <Navigate to={from} replace />
   }
 
-  async function onSubmit(e: FormEvent) {
+  async function onEmailSubmit(e: FormEvent) {
     e.preventDefault()
     setError('')
     setSubmitting(true)
@@ -39,14 +40,27 @@ export default function LoginPage() {
     }
   }
 
+  async function onTmdbRedirect() {
+    setError('')
+    setRedirecting(true)
+    try {
+      await loginWithTmdb()
+    } catch (err) {
+      setRedirecting(false)
+      setError(err instanceof ApiError ? err.message : 'Could not start TMDB login.')
+    }
+  }
+
+  const busy = submitting || redirecting
+
   return (
     <div className="w-full max-w-md">
       <h1 className="font-display text-3xl text-fg">Welcome back</h1>
       <p className="mt-2 text-sm text-fg-secondary">
-        Sign in to your SceneShelf account.
+        Sign in with SceneShelf or your TMDB account.
       </p>
 
-      <form onSubmit={onSubmit} className="mt-8 space-y-4">
+      <form onSubmit={onEmailSubmit} className="mt-8 space-y-4">
         <div>
           <label htmlFor="login-email" className="mb-1.5 block text-sm text-fg-secondary">
             Email
@@ -75,7 +89,6 @@ export default function LoginPage() {
             className="w-full rounded-md border border-border bg-surface px-3 py-2.5 text-sm text-fg outline-none focus:border-brass"
           />
         </div>
-
         <label className="flex items-center gap-2 text-sm text-fg-secondary">
           <input
             type="checkbox"
@@ -90,12 +103,27 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled={busy}
           className="w-full rounded-md bg-brass py-3 text-sm font-semibold text-canvas hover:opacity-90 disabled:opacity-60"
         >
           {submitting ? 'Signing in…' : 'Log in'}
         </button>
       </form>
+
+      <div className="my-6 flex items-center gap-3">
+        <div className="h-px flex-1 bg-border" />
+        <span className="text-xs text-fg-muted">or</span>
+        <div className="h-px flex-1 bg-border" />
+      </div>
+
+      <button
+        type="button"
+        onClick={onTmdbRedirect}
+        disabled={busy}
+        className="w-full rounded-md border border-border bg-elevated/40 py-3 text-sm text-fg transition hover:border-brass disabled:opacity-60"
+      >
+        {redirecting ? 'Redirecting…' : 'Log in with TMDB'}
+      </button>
 
       <p className="mt-6 text-center text-sm text-fg-muted">
         No account?{' '}
