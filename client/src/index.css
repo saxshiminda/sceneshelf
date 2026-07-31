@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+@custom-variant light (&:where(.light, .light *));
+
+@theme {
+  --font-display: "Libre Baskerville", ui-serif, Georgia, serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-canvas: var(--ss-canvas);
+  --color-surface: var(--ss-surface);
+  --color-elevated: var(--ss-elevated);
+  --color-border: var(--ss-border);
+  --color-fg: var(--ss-fg);
+  --color-fg-secondary: var(--ss-fg-secondary);
+  --color-fg-muted: var(--ss-fg-muted);
+  --color-brass: var(--ss-brass);
+  --color-brass-muted: var(--ss-brass-muted);
+  --color-poster: var(--ss-poster);
+}
+
+/* Projection Room — Light */
+:root,
+.light {
+  --ss-canvas: #f2f0eb;
+  --ss-surface: #faf9f6;
+  --ss-elevated: #e8e5de;
+  --ss-border: #d5d1c8;
+  --ss-fg: #16171b;
+  --ss-fg-secondary: #5c5952;
+  --ss-fg-muted: #8a867c;
+  --ss-brass: #9a7b4f;
+  --ss-brass-muted: #e8dfd0;
+  --ss-poster: #cfcbc2;
+}
+
+/* Projection Room — Dark */
+.dark {
+  --ss-canvas: #0e0f12;
+  --ss-surface: #17181d;
+  --ss-elevated: #22242b;
+  --ss-border: #2e313a;
+  --ss-fg: #edebe6;
+  --ss-fg-secondary: #a9a69c;
+  --ss-fg-muted: #6e6b63;
+  --ss-brass: #c4a574;
+  --ss-brass-muted: #2a251c;
+  --ss-poster: #2a2c34;
+}
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply m-0 min-h-dvh bg-canvas font-sans text-fg antialiased;
+  }
+
+  #root {
+    @apply min-h-dvh;
+  }
+}

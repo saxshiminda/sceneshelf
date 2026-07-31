@@ -1,0 +1,41 @@
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.sw?
+*.suo
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Node
+**/node_modules/
+**/dist/
+**/dist-ssr/
+*.local
+
+# Laravel
+**/vendor/
+**/storage/*.key
+**/storage/pail
+**/storage/logs/*
+!**/.gitignore
+**/public/hot
+**/public/storage
+**/public/build
+.phpunit.result.cache
+.phpunit.cache
+Homestead.json
+Homestead.yaml
+auth.json
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
