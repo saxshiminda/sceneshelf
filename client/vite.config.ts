@@ -10,8 +10,9 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     server: {
       proxy: {
-        // Same-origin in the browser → no CORS / referrer cross-origin issues with Sanctum cookies
-        '^/(api|sanctum|login|logout|register|auth|forgot-password|reset-password|email|verify-email|storage|up)':
+        // Same-origin in the browser → no CORS issues with Sanctum cookies.
+        // Do NOT proxy /auth/* broadly — /auth/callback is a React route.
+        '^/(api|sanctum|login|logout|register|auth/tmdb|forgot-password|reset-password|email|verify-email|storage|up)':
           {
             target: apiTarget,
             changeOrigin: true,
