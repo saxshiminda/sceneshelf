@@ -66,39 +66,41 @@ export default function Header() {
       <header className="sticky top-0 z-40 border-b border-border bg-canvas/90 backdrop-blur-md">
         <nav
           aria-label="Global"
-          className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-4 lg:gap-4 lg:px-8"
+          className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-4 lg:px-8"
         >
-          <Link
-            to="/home"
-            className="shrink-0 font-display text-xl text-fg transition hover:text-brass"
-          >
-            SceneShelf
-          </Link>
+          <div className="flex items-center gap-10 lg:gap-14">
+            <Link
+              to="/home"
+              className="shrink-0 font-display text-xl text-fg transition hover:text-brass"
+            >
+              SceneShelf
+            </Link>
 
-          <div className="hidden items-center gap-8 md:flex">
-            {navigation.map((item) => {
-              const active = location.pathname === item.href
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`text-sm transition ${
-                    active
-                      ? 'font-medium text-fg'
-                      : 'text-fg-secondary hover:text-fg'
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              )
-            })}
+            <div className="hidden items-center gap-8 md:flex">
+              {navigation.map((item) => {
+                const active = location.pathname === item.href
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`text-sm transition ${
+                      active
+                        ? 'font-medium text-fg'
+                        : 'text-fg-secondary hover:text-fg'
+                    }`}
+                  >
+                    {item.name}
+                  </Link>
+                )
+              })}
+            </div>
           </div>
 
-          <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+          <div className="flex items-center gap-2">
             <form
               onSubmit={onSearch}
               role="search"
-              className="relative hidden min-w-0 max-w-[14rem] flex-1 sm:block"
+              className="relative hidden w-40 sm:block lg:w-48"
             >
               <label htmlFor="header-search" className="sr-only">
                 Search movies and series
