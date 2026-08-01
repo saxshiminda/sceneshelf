@@ -4,6 +4,7 @@ import {
   useSimilarTitles,
   useTitleDetails,
 } from '../hooks/useMovies'
+import { useShelfStatus } from '../hooks/useShelf'
 import { posterUrl } from '../api/movies'
 import PosterRow from '../components/PosterRow'
 import TitleRatings from '../components/TitleRatings'
@@ -21,6 +22,10 @@ export default function TitlePage() {
   const validId = numericId !== null && Number.isFinite(numericId) ? numericId : null
 
   const { data, error, isLoading } = useTitleDetails(type, validId)
+  const { status, busy, error: shelfError, toggle, isAuthenticated } = useShelfStatus(
+    type,
+    validId,
+  )
 
   const collectionId =
     type === 'movie' && data?.belongs_to_collection?.id
@@ -78,6 +83,12 @@ export default function TitlePage() {
   const hasParts = (collectionParts?.length ?? 0) > 0
   const hasSimilar = (similar?.length ?? 0) > 0
 
+  const shelfMeta = {
+    title,
+    poster_path: data.poster_path ?? null,
+    year,
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-5 pb-20 lg:px-8">
       <div className="grid gap-10 py-10 lg:grid-cols-[280px_1fr] lg:gap-14 lg:py-14">
@@ -111,23 +122,50 @@ export default function TitlePage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <button
               type="button"
-              className="rounded-md bg-brass px-5 py-2.5 text-sm font-semibold text-canvas hover:opacity-90"
+              disabled={busy}
+              onClick={() => void toggle('watched', shelfMeta)}
+              className={`rounded-md px-5 py-2.5 text-sm font-semibold transition disabled:opacity-60 ${
+                status.watched
+                  ? 'bg-brass text-canvas'
+                  : 'border border-border bg-elevated/40 text-fg hover:border-brass'
+              }`}
             >
-              Mark watched
+              {status.watched ? 'Watched' : 'Mark watched'}
             </button>
             <button
               type="button"
-              className="rounded-md border border-border bg-elevated/40 px-5 py-2.5 text-sm text-fg hover:border-brass"
+              disabled={busy}
+              onClick={() => void toggle('want_to_watch', shelfMeta)}
+              className={`rounded-md border px-5 py-2.5 text-sm transition disabled:opacity-60 ${
+                status.want_to_watch
+                  ? 'border-brass bg-brass/15 text-fg'
+                  : 'border-border bg-elevated/40 text-fg hover:border-brass'
+              }`}
             >
               Want to watch
             </button>
             <button
               type="button"
-              className="rounded-md border border-border bg-elevated/40 px-5 py-2.5 text-sm text-fg hover:border-brass"
+              disabled={busy}
+              onClick={() => void toggle('favorite', shelfMeta)}
+              className={`rounded-md border px-5 py-2.5 text-sm transition disabled:opacity-60 ${
+                status.favorite
+                  ? 'border-brass bg-brass/15 text-fg'
+                  : 'border-border bg-elevated/40 text-fg hover:border-brass'
+              }`}
             >
-              Favorite
+              {status.favorite ? 'Favorited' : 'Favorite'}
             </button>
           </div>
+          {!isAuthenticated && (
+            <p className="mt-3 text-sm text-fg-muted">
+              <Link to="/login" className="text-brass hover:underline">
+                Sign in
+              </Link>{' '}
+              to save titles to your shelf.
+            </p>
+          )}
+          {shelfError && <p className="mt-3 text-sm text-red-400">{shelfError}</p>}
         </div>
       </div>
 

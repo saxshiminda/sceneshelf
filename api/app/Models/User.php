@@ -65,4 +65,12 @@ class User extends Authenticatable
                 : null,
         );
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<ShelfItem, $this>
+     */
+    public function shelfItems()
+    {
+        return $this->hasMany(ShelfItem::class);
+    }
 }

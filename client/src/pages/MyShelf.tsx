@@ -1,26 +1,28 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useTrending } from '../hooks/useMovies'
+import { useShelfList } from '../hooks/useShelf'
+import { shelfItemToTitleCard, type ShelfList } from '../api/shelf'
 import MovieCard from '../components/MovieCard'
+import RequireAuth from '../components/RequireAuth'
 
-type ShelfTab = 'watched' | 'want' | 'favorites'
-
-const TABS: { id: ShelfTab; label: string }[] = [
+const TABS: { id: ShelfList; label: string }[] = [
   { id: 'watched', label: 'Watched' },
   { id: 'want', label: 'Want to Watch' },
   { id: 'favorites', label: 'Favorites' },
 ]
 
 export default function MyShelf() {
-  const [tab, setTab] = useState<ShelfTab>('watched')
-  // Placeholder content until shelf API exists — show trending as visual stand-in
-  const { data: titles, isLoading } = useTrending('all')
-  const slice =
-    tab === 'watched'
-      ? titles?.slice(0, 6)
-      : tab === 'want'
-        ? titles?.slice(3, 9)
-        : titles?.slice(6, 12)
+  return (
+    <RequireAuth>
+      <MyShelfContent />
+    </RequireAuth>
+  )
+}
+
+function MyShelfContent() {
+  const [tab, setTab] = useState<ShelfList>('watched')
+  const { items, isLoading, error } = useShelfList(tab)
+  const titles = items.map(shelfItemToTitleCard)
 
   return (
     <section className="mx-auto max-w-6xl px-5 py-12 lg:px-8 lg:py-16">
@@ -48,7 +50,11 @@ export default function MyShelf() {
 
       {isLoading && <p className="mt-10 text-fg-muted">Loading…</p>}
 
-      {!isLoading && (!slice || slice.length === 0) && (
+      {!isLoading && error && (
+        <p className="mt-10 text-sm text-red-400">{error.message}</p>
+      )}
+
+      {!isLoading && !error && titles.length === 0 && (
         <div className="mt-12 text-center">
           <p className="text-fg-muted">Nothing on this shelf yet.</p>
           <Link
@@ -60,9 +66,9 @@ export default function MyShelf() {
         </div>
       )}
 
-      {slice && slice.length > 0 && (
+      {titles.length > 0 && (
         <ul className="mt-10 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {slice.map((title) => (
+          {titles.map((title) => (
             <li key={`${title.mediaType}-${title.id}`}>
               <MovieCard title={title} />
             </li>

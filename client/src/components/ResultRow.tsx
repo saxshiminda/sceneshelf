@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { posterUrl } from '../api/movies'
+import { useShelfStatus } from '../hooks/useShelf'
 import type { Genre, TitleCard } from '../types/tmdb'
 
 interface ResultRowProps {
@@ -15,6 +16,17 @@ export default function ResultRow({ title, genres = [] }: ResultRowProps) {
     .filter(Boolean)
     .slice(0, 3)
     .join(', ')
+
+  const { status, busy, toggle, isAuthenticated } = useShelfStatus(
+    title.mediaType,
+    title.id,
+  )
+
+  const shelfMeta = {
+    title: title.title,
+    poster_path: title.posterPath,
+    year: title.year,
+  }
 
   return (
     <article className="flex gap-4 border-b border-border py-5 first:pt-0 last:border-0">
@@ -63,20 +75,51 @@ export default function ResultRow({ title, genres = [] }: ResultRowProps) {
           </p>
         )}
         <div className="mt-3 flex flex-wrap gap-2">
-          <ActionChip label="Watched" />
-          <ActionChip label="Want to watch" />
-          <ActionChip label="Favorite" />
+          <ActionChip
+            label="Watched"
+            active={status.watched}
+            disabled={busy || !isAuthenticated}
+            onClick={() => void toggle('watched', shelfMeta)}
+          />
+          <ActionChip
+            label="Want to watch"
+            active={status.want_to_watch}
+            disabled={busy || !isAuthenticated}
+            onClick={() => void toggle('want_to_watch', shelfMeta)}
+          />
+          <ActionChip
+            label="Favorite"
+            active={status.favorite}
+            disabled={busy || !isAuthenticated}
+            onClick={() => void toggle('favorite', shelfMeta)}
+          />
         </div>
       </div>
     </article>
   )
 }
 
-function ActionChip({ label }: { label: string }) {
+function ActionChip({
+  label,
+  active,
+  disabled,
+  onClick,
+}: {
+  label: string
+  active?: boolean
+  disabled?: boolean
+  onClick?: () => void
+}) {
   return (
     <button
       type="button"
-      className="rounded-full border border-border bg-elevated/40 px-3 py-1 text-xs text-fg-secondary transition hover:border-brass hover:text-brass"
+      disabled={disabled}
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1 text-xs transition disabled:opacity-50 ${
+        active
+          ? 'border-brass bg-brass/15 text-brass'
+          : 'border-border bg-elevated/40 text-fg-secondary hover:border-brass hover:text-brass'
+      }`}
     >
       {label}
     </button>
