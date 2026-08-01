@@ -4,15 +4,18 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\TmdbClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class TmdbAuthController extends Controller
 {
+    public function __construct(private TmdbClient $tmdb) {}
+
     /**
      * Verify a TMDB session, upsert the local user, and start a Sanctum session.
      */
@@ -58,27 +61,13 @@ class TmdbAuthController extends Controller
      */
     private function fetchTmdbAccount(string $sessionId): array
     {
-        $apiKey = config('services.tmdb.key');
-
-        if (! filled($apiKey)) {
-            throw ValidationException::withMessages([
-                'session_id' => 'TMDB is not configured on the server.',
-            ]);
-        }
-
-        $response = Http::timeout(15)->get(rtrim((string) config('services.tmdb.base_url'), '/').'/account', [
-            'api_key' => $apiKey,
-            'session_id' => $sessionId,
-        ]);
-
-        if (! $response->successful()) {
+        try {
+            $account = $this->tmdb->get('account', ['session_id' => $sessionId]);
+        } catch (Throwable) {
             throw ValidationException::withMessages([
                 'session_id' => 'Invalid or expired TMDB session.',
             ]);
         }
-
-        /** @var array<string, mixed> $account */
-        $account = $response->json();
 
         if (! isset($account['id'])) {
             throw ValidationException::withMessages([

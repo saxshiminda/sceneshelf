@@ -104,6 +104,50 @@ class ShelfItemController extends Controller
         ]);
     }
 
+    /**
+     * Batch lookup shelf flags for many titles (search results).
+     */
+    public function statuses(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'items' => ['required', 'array', 'max:100'],
+            'items.*.media_type' => ['required', 'in:movie,tv'],
+            'items.*.tmdb_id' => ['required', 'integer', 'min:1'],
+        ]);
+
+        $pairs = collect($validated['items'])
+            ->unique(fn (array $row) => $row['media_type'].':'.$row['tmdb_id'])
+            ->values();
+
+        $query = ShelfItem::query()->where('user_id', $request->user()->id);
+
+        $query->where(function ($q) use ($pairs) {
+            foreach ($pairs as $pair) {
+                $q->orWhere(function ($inner) use ($pair) {
+                    $inner->where('media_type', $pair['media_type'])
+                        ->where('tmdb_id', $pair['tmdb_id']);
+                });
+            }
+        });
+
+        $found = $query->get()->keyBy(
+            fn (ShelfItem $item) => $item->media_type.':'.$item->tmdb_id
+        );
+
+        $result = [];
+        foreach ($pairs as $pair) {
+            $key = $pair['media_type'].':'.$pair['tmdb_id'];
+            $item = $found->get($key);
+            $result[$key] = [
+                'watched' => (bool) ($item?->watched),
+                'want_to_watch' => (bool) ($item?->want_to_watch),
+                'favorite' => (bool) ($item?->favorite),
+            ];
+        }
+
+        return response()->json($result);
+    }
+
     private function assertMediaType(string $mediaType): void
     {
         if (! in_array($mediaType, ['movie', 'tv'], true)) {
