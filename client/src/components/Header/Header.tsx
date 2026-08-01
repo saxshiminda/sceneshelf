@@ -1,7 +1,14 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useState } from 'react'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Dialog, DialogPanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
-import { Bars3Icon, MoonIcon, SunIcon, UserCircleIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import {
+  Bars3Icon,
+  MagnifyingGlassIcon,
+  MoonIcon,
+  SunIcon,
+  UserCircleIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
 import type { Navigation } from '../../interfaces/Navigation'
 import { useTheme } from '../../theme/ThemeProvider'
 import { useAuth } from '../../auth/AuthProvider'
@@ -29,12 +36,29 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { theme, toggleTheme } = useTheme()
   const { avatarUrl, isAuthenticated, logout } = useAuth()
+  const [query, setQuery] = useState(() =>
+    location.pathname === '/search' ? (searchParams.get('q') ?? '') : '',
+  )
+
+  useEffect(() => {
+    if (location.pathname === '/search') {
+      setQuery(searchParams.get('q') ?? '')
+    }
+  }, [location.pathname, searchParams])
 
   async function onLogout() {
     await logout()
     navigate('/home', { replace: true })
+  }
+
+  function onSearch(e: FormEvent) {
+    e.preventDefault()
+    const q = query.trim()
+    setMobileMenuOpen(false)
+    navigate(q ? `/search?q=${encodeURIComponent(q)}` : '/search')
   }
 
   return (
@@ -42,11 +66,11 @@ export default function Header() {
       <header className="sticky top-0 z-40 border-b border-border bg-canvas/90 backdrop-blur-md">
         <nav
           aria-label="Global"
-          className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-4 lg:px-8"
+          className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-4 lg:gap-4 lg:px-8"
         >
           <Link
             to="/home"
-            className="font-display text-xl text-fg transition hover:text-brass"
+            className="shrink-0 font-display text-xl text-fg transition hover:text-brass"
           >
             SceneShelf
           </Link>
@@ -70,7 +94,26 @@ export default function Header() {
             })}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+            <form
+              onSubmit={onSearch}
+              role="search"
+              className="relative hidden min-w-0 max-w-[14rem] flex-1 sm:block"
+            >
+              <label htmlFor="header-search" className="sr-only">
+                Search movies and series
+              </label>
+              <MagnifyingGlassIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-fg-muted" />
+              <input
+                id="header-search"
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search…"
+                className="w-full rounded-md border border-border bg-surface py-1.5 pr-3 pl-8 text-sm text-fg outline-none placeholder:text-fg-muted focus:border-brass"
+              />
+            </form>
+
             <button
               type="button"
               onClick={toggleTheme}
@@ -159,7 +202,22 @@ export default function Header() {
               <XMarkIcon className="size-6" />
             </button>
           </div>
-          <div className="mt-8 space-y-1">
+          <form onSubmit={onSearch} role="search" className="relative mt-8 sm:hidden">
+            <label htmlFor="header-search-mobile" className="sr-only">
+              Search movies and series
+            </label>
+            <MagnifyingGlassIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-muted" />
+            <input
+              id="header-search-mobile"
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search movies & series…"
+              className="w-full rounded-md border border-border bg-canvas py-2.5 pr-3 pl-9 text-sm text-fg outline-none placeholder:text-fg-muted focus:border-brass"
+            />
+          </form>
+
+          <div className="mt-6 space-y-1 sm:mt-8">
             {navigation.map((item) => (
               <Link
                 key={item.name}
