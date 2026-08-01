@@ -1,14 +1,25 @@
 import { Link } from 'react-router-dom'
 import { posterUrl } from '../api/movies'
-import { useShelfStatus } from '../hooks/useShelf'
+import type { ShelfFlag, ShelfFlags } from '../api/shelf'
 import type { Genre, TitleCard } from '../types/tmdb'
 
 interface ResultRowProps {
   title: TitleCard
   genres?: Genre[]
+  status?: ShelfFlags
+  busy?: boolean
+  canEdit?: boolean
+  onToggle?: (flag: ShelfFlag) => void
 }
 
-export default function ResultRow({ title, genres = [] }: ResultRowProps) {
+export default function ResultRow({
+  title,
+  genres = [],
+  status,
+  busy,
+  canEdit,
+  onToggle,
+}: ResultRowProps) {
   const poster = posterUrl(title.posterPath, 'w342')
   const kind = title.mediaType === 'tv' ? 'Series' : 'Film'
   const genreNames = title.genreIds
@@ -17,16 +28,7 @@ export default function ResultRow({ title, genres = [] }: ResultRowProps) {
     .slice(0, 3)
     .join(', ')
 
-  const { status, busy, toggle, isAuthenticated } = useShelfStatus(
-    title.mediaType,
-    title.id,
-  )
-
-  const shelfMeta = {
-    title: title.title,
-    poster_path: title.posterPath,
-    year: title.year,
-  }
+  const flags = status ?? { watched: false, want_to_watch: false, favorite: false }
 
   return (
     <article className="flex gap-4 border-b border-border py-5 first:pt-0 last:border-0">
@@ -74,26 +76,28 @@ export default function ResultRow({ title, genres = [] }: ResultRowProps) {
             {title.overview}
           </p>
         )}
-        <div className="mt-3 flex flex-wrap gap-2">
-          <ActionChip
-            label="Watched"
-            active={status.watched}
-            disabled={busy || !isAuthenticated}
-            onClick={() => void toggle('watched', shelfMeta)}
-          />
-          <ActionChip
-            label="Want to watch"
-            active={status.want_to_watch}
-            disabled={busy || !isAuthenticated}
-            onClick={() => void toggle('want_to_watch', shelfMeta)}
-          />
-          <ActionChip
-            label="Favorite"
-            active={status.favorite}
-            disabled={busy || !isAuthenticated}
-            onClick={() => void toggle('favorite', shelfMeta)}
-          />
-        </div>
+        {canEdit && onToggle && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <ActionChip
+              label="Watched"
+              active={flags.watched}
+              disabled={busy}
+              onClick={() => onToggle('watched')}
+            />
+            <ActionChip
+              label="Want to watch"
+              active={flags.want_to_watch}
+              disabled={busy}
+              onClick={() => onToggle('want_to_watch')}
+            />
+            <ActionChip
+              label="Favorite"
+              active={flags.favorite}
+              disabled={busy}
+              onClick={() => onToggle('favorite')}
+            />
+          </div>
+        )}
       </div>
     </article>
   )

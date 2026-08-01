@@ -1,4 +1,4 @@
-import { tmdb } from './clients'
+import { backend } from './clients'
 import { env } from '../lib/env'
 import type { RequestOptions } from '../lib/http'
 import type {
@@ -14,6 +14,7 @@ import type {
 } from '../types/tmdb'
 import { toTitleCard } from '../types/tmdb'
 
+/** Poster/backdrop images stay on TMDB's CDN (no API key required). */
 export function posterUrl(path: string | null | undefined, size: 'w342' | 'w500' | 'w780' | 'original' = 'w342') {
   if (!path) return null
   return `${env.tmdbImageBase}/${size}${path}`
@@ -29,14 +30,14 @@ export function getTrending(
   timeWindow: 'day' | 'week' = 'week',
   options?: RequestOptions,
 ) {
-  return tmdb.get<TrendingResponse>(`/trending/${media}/${timeWindow}`, {
+  return backend.get<TrendingResponse>(`/api/tmdb/trending/${media}/${timeWindow}`, {
     ...options,
     query: { language: 'en-US', ...options?.query },
   })
 }
 
 export function searchMulti(query: string, page = 1, options?: RequestOptions) {
-  return tmdb.get<SearchMultiResponse>('/search/multi', {
+  return backend.get<SearchMultiResponse>('/api/tmdb/search/multi', {
     ...options,
     query: {
       query,
@@ -49,7 +50,7 @@ export function searchMulti(query: string, page = 1, options?: RequestOptions) {
 }
 
 export function searchMovies(query: string, page = 1, options?: RequestOptions) {
-  return tmdb.get<DiscoverResponse>('/search/movie', {
+  return backend.get<DiscoverResponse>('/api/tmdb/search/movie', {
     ...options,
     query: {
       query,
@@ -62,7 +63,7 @@ export function searchMovies(query: string, page = 1, options?: RequestOptions) 
 }
 
 export function searchTv(query: string, page = 1, options?: RequestOptions) {
-  return tmdb.get<DiscoverResponse>('/search/tv', {
+  return backend.get<DiscoverResponse>('/api/tmdb/search/tv', {
     ...options,
     query: {
       query,
@@ -75,7 +76,7 @@ export function searchTv(query: string, page = 1, options?: RequestOptions) {
 }
 
 export function discoverMovies(params: DiscoverParams = {}, options?: RequestOptions) {
-  return tmdb.get<DiscoverResponse>('/discover/movie', {
+  return backend.get<DiscoverResponse>('/api/tmdb/discover/movie', {
     ...options,
     query: {
       language: 'en-US',
@@ -88,7 +89,7 @@ export function discoverMovies(params: DiscoverParams = {}, options?: RequestOpt
 }
 
 export function discoverTv(params: DiscoverParams = {}, options?: RequestOptions) {
-  return tmdb.get<DiscoverResponse>('/discover/tv', {
+  return backend.get<DiscoverResponse>('/api/tmdb/discover/tv', {
     ...options,
     query: {
       language: 'en-US',
@@ -101,14 +102,14 @@ export function discoverTv(params: DiscoverParams = {}, options?: RequestOptions
 }
 
 export function getMovieGenres(options?: RequestOptions) {
-  return tmdb.get<GenreListResponse>('/genre/movie/list', {
+  return backend.get<GenreListResponse>('/api/tmdb/genre/movie/list', {
     ...options,
     query: { language: 'en-US', ...options?.query },
   })
 }
 
 export function getTvGenres(options?: RequestOptions) {
-  return tmdb.get<GenreListResponse>('/genre/tv/list', {
+  return backend.get<GenreListResponse>('/api/tmdb/genre/tv/list', {
     ...options,
     query: { language: 'en-US', ...options?.query },
   })
@@ -124,7 +125,7 @@ export function mapTitles(
 }
 
 export function getMovieDetails(id: number | string, options?: RequestOptions) {
-  return tmdb.get<TitleDetails>(`/movie/${id}`, {
+  return backend.get<TitleDetails>(`/api/tmdb/movie/${id}`, {
     ...options,
     query: {
       language: 'en-US',
@@ -135,7 +136,7 @@ export function getMovieDetails(id: number | string, options?: RequestOptions) {
 }
 
 export function getTvDetails(id: number | string, options?: RequestOptions) {
-  return tmdb.get<TitleDetails>(`/tv/${id}`, {
+  return backend.get<TitleDetails>(`/api/tmdb/tv/${id}`, {
     ...options,
     query: {
       language: 'en-US',
@@ -151,21 +152,21 @@ export function resolveImdbId(details: TitleDetails): string | null {
 }
 
 export function getCollection(id: number | string, options?: RequestOptions) {
-  return tmdb.get<CollectionDetails>(`/collection/${id}`, {
+  return backend.get<CollectionDetails>(`/api/tmdb/collection/${id}`, {
     ...options,
     query: { language: 'en-US', ...options?.query },
   })
 }
 
 export function getSimilarMovies(id: number | string, page = 1, options?: RequestOptions) {
-  return tmdb.get<DiscoverResponse>(`/movie/${id}/similar`, {
+  return backend.get<DiscoverResponse>(`/api/tmdb/movie/${id}/similar`, {
     ...options,
     query: { language: 'en-US', page, ...options?.query },
   })
 }
 
 export function getSimilarTv(id: number | string, page = 1, options?: RequestOptions) {
-  return tmdb.get<DiscoverResponse>(`/tv/${id}/similar`, {
+  return backend.get<DiscoverResponse>(`/api/tmdb/tv/${id}/similar`, {
     ...options,
     query: { language: 'en-US', page, ...options?.query },
   })

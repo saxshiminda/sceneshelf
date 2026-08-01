@@ -62,6 +62,25 @@ export async function toggleShelf(payload: ToggleShelfPayload, options?: Request
   return backend.post<ShelfStatus>('/api/shelf/toggle', payload, options)
 }
 
+export interface ShelfFlags {
+  watched: boolean
+  want_to_watch: boolean
+  favorite: boolean
+}
+
+export async function getShelfStatuses(
+  items: Array<{ media_type: MediaType; tmdb_id: number }>,
+  options?: RequestOptions,
+) {
+  if (items.length === 0) return {} as Record<string, ShelfFlags>
+  await getCsrfCookie(options)
+  return backend.post<Record<string, ShelfFlags>>('/api/shelf/statuses', { items }, options)
+}
+
+export function shelfKey(mediaType: MediaType, tmdbId: number) {
+  return `${mediaType}:${tmdbId}`
+}
+
 export function shelfItemToTitleCard(item: ShelfItem) {
   return {
     id: item.tmdb_id,
