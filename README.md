@@ -6,7 +6,7 @@ Movie discovery shelf — React client + Laravel API.
 
 ```
 client/   React (Vite) frontend
-api/      Laravel Breeze + Sanctum API
+api/      Laravel Breeze + Sanctum API (also proxies TMDB / OMDb)
 ```
 
 ## Setup
@@ -18,14 +18,12 @@ cd api
 cp .env.example .env
 composer install
 php artisan key:generate
-# Set TMDB_API_KEY in .env (same key as the client)
+# Required: TMDB_API_KEY=...
+# Optional: OMDB_API_KEY=...
 php artisan migrate
+php artisan storage:link
 php artisan serve --host=127.0.0.1 --port=8000
 ```
-
-If port 8000 is busy, use another port (e.g. `8001`) and set `VITE_API_PROXY_TARGET` in the client to match.
-
-Defaults: `FRONTEND_URL=http://localhost:5173`.
 
 ### Client
 
@@ -36,16 +34,15 @@ npm install
 npm run dev
 ```
 
-Leave `VITE_BACKEND_URL` empty so the Vite dev server proxies Laravel (`/login`, `/sanctum`, `/api`, …). That keeps auth cookies same-origin and avoids cross-origin / CORS issues.
+Leave `VITE_BACKEND_URL` empty so Vite proxies Laravel. Set `VITE_API_PROXY_TARGET` to your artisan URL.
 
-Set your TMDB key and `VITE_API_PROXY_TARGET` (Laravel URL) in `.env.local`.
+**No TMDB key in the client** — React calls `/api/tmdb/...`, Laravel calls TMDB.
 
 ## Auth
 
-Three ways to sign in:
+1. Register / login with email + password
+2. Or **Log in with TMDB** (browser approve → `/auth/callback`)
 
-1. **Register / login** — email + password (`POST /register`, `POST /login`)
-2. **TMDB credentials** — TMDB username + password on the login page
-3. **TMDB browser approve** — redirect to themoviedb.org, then `/auth/callback`
+## Shelf
 
-TMDB flows call `POST /auth/tmdb` with a `session_id`. Laravel verifies it with TMDB, upserts the user (tmdb id, username, avatar, prefs), and starts a Sanctum session.
+Authenticated users can toggle watched / want to watch / favorites on title + search pages. Lists live under **My Shelf**.
