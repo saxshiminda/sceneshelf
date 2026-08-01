@@ -5,6 +5,7 @@ import {
   useTitleDetails,
 } from '../hooks/useMovies'
 import { useShelfStatus } from '../hooks/useShelf'
+import { useToast } from '../components/ToastProvider'
 import { posterUrl } from '../api/movies'
 import PosterRow from '../components/PosterRow'
 import TitleRatings from '../components/TitleRatings'
@@ -26,6 +27,7 @@ export default function TitlePage() {
     type,
     validId,
   )
+  const { toast } = useToast()
 
   const collectionId =
     type === 'movie' && data?.belongs_to_collection?.id
@@ -123,7 +125,10 @@ export default function TitlePage() {
             <button
               type="button"
               disabled={busy}
-              onClick={() => void toggle('watched', shelfMeta)}
+              onClick={async () => {
+                const result = await toggle('watched', shelfMeta)
+                if (result) toast(result.watched ? 'Marked watched' : 'Removed from watched')
+              }}
               className={`rounded-md px-5 py-2.5 text-sm font-semibold transition disabled:opacity-60 ${
                 status.watched
                   ? 'bg-brass text-canvas'
@@ -135,7 +140,12 @@ export default function TitlePage() {
             <button
               type="button"
               disabled={busy}
-              onClick={() => void toggle('want_to_watch', shelfMeta)}
+              onClick={async () => {
+                const result = await toggle('want_to_watch', shelfMeta)
+                if (result) {
+                  toast(result.want_to_watch ? 'Added to want to watch' : 'Removed from want to watch')
+                }
+              }}
               className={`rounded-md border px-5 py-2.5 text-sm transition disabled:opacity-60 ${
                 status.want_to_watch
                   ? 'border-brass bg-brass/15 text-fg'
@@ -147,7 +157,10 @@ export default function TitlePage() {
             <button
               type="button"
               disabled={busy}
-              onClick={() => void toggle('favorite', shelfMeta)}
+              onClick={async () => {
+                const result = await toggle('favorite', shelfMeta)
+                if (result) toast(result.favorite ? 'Added to favorites' : 'Removed from favorites')
+              }}
               className={`rounded-md border px-5 py-2.5 text-sm transition disabled:opacity-60 ${
                 status.favorite
                   ? 'border-brass bg-brass/15 text-fg'

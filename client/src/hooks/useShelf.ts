@@ -1,9 +1,12 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   getShelf,
   getShelfStatus,
+  getShelfStatuses,
+  shelfKey,
   toggleShelf,
   type ShelfFlag,
+  type ShelfFlags,
   type ShelfItem,
   type ShelfList,
   type ToggleShelfPayload,
@@ -11,7 +14,7 @@ import {
 import { ApiError } from '../lib/http'
 import { inflightDedupe } from '../lib/inflight'
 import { useAuth } from '../auth/AuthProvider'
-import type { MediaType } from '../types/tmdb'
+import type { MediaType, TitleCard } from '../types/tmdb'
 
 export function useShelfList(list: ShelfList) {
   const { isAuthenticated, isLoading: authLoading } = useAuth()
@@ -66,12 +69,35 @@ export function useShelfList(list: ShelfList) {
     }
   }, [authLoading, isAuthenticated, list])
 
-  return { items, isLoading: authLoading || isLoading, error, reload }
+  const removeFromList = useCallback(
+    async (item: ShelfItem) => {
+      const flag: ShelfFlag =
+        list === 'watched' ? 'watched' : list === 'want' ? 'want_to_watch' : 'favorite'
+
+      const result = await toggleShelf({
+        tmdb_id: item.tmdb_id,
+        media_type: item.media_type,
+        flag,
+        title: item.title,
+        poster_path: item.poster_path,
+        year: item.year,
+      })
+
+      setItems((prev) =>
+        prev.filter((row) => !(row.tmdb_id === item.tmdb_id && row.media_type === item.media_type)),
+      )
+
+      return result
+    },
+    [list],
+  )
+
+  return { items, isLoading: authLoading || isLoading, error, reload, removeFromList }
 }
 
 export function useShelfStatus(mediaType: MediaType | null, tmdbId: number | null) {
   const { isAuthenticated, isLoading: authLoading } = useAuth()
-  const [status, setStatus] = useState({
+  const [status, setStatus] = useState<ShelfFlags>({
     watched: false,
     want_to_watch: false,
     favorite: false,
@@ -137,8 +163,10 @@ export function useShelfStatus(mediaType: MediaType | null, tmdbId: number | nul
           want_to_watch: result.want_to_watch,
           favorite: result.favorite,
         })
+        return result
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'Could not update shelf.')
+        return null
       } finally {
         setBusy(false)
       }
@@ -147,4 +175,84 @@ export function useShelfStatus(mediaType: MediaType | null, tmdbId: number | nul
   )
 
   return { status, isLoading, busy, error, toggle, isAuthenticated }
+}
+
+/** One batch request for a list of titles (search results). */
+export function useShelfStatusMap(titles: TitleCard[]) {
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const [map, setMap] = useState<Record<string, ShelfFlags>>({})
+  const [busyKey, setBusyKey] = useState<string | null>(null)
+
+  const titleKey = useMemo(
+    () => titles.map((t) => shelfKey(t.mediaType, t.id)).join(','),
+    [titles],
+  )
+
+  useEffect(() => {
+    if (authLoading) return
+    if (!isAuthenticated || titles.length === 0) {
+      setMap({})
+      return
+    }
+
+    let cancelled = false
+    const items = titles.map((t) => ({ media_type: t.mediaType, tmdb_id: t.id }))
+    ;(async () => {
+      try {
+        const next = await inflightDedupe(`shelf:statuses:${titleKey}`, () =>
+          getShelfStatuses(items),
+        )
+        if (!cancelled) setMap(next)
+      } catch {
+        if (!cancelled) setMap({})
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [authLoading, isAuthenticated, titleKey, titles])
+
+  const toggle = useCallback(
+    async (title: TitleCard, flag: ShelfFlag) => {
+      if (!isAuthenticated) return null
+      const key = shelfKey(title.mediaType, title.id)
+      setBusyKey(key)
+      try {
+        const result = await toggleShelf({
+          tmdb_id: title.id,
+          media_type: title.mediaType,
+          flag,
+          title: title.title,
+          poster_path: title.posterPath,
+          year: title.year,
+        })
+        setMap((prev) => ({
+          ...prev,
+          [key]: {
+            watched: result.watched,
+            want_to_watch: result.want_to_watch,
+            favorite: result.favorite,
+          },
+        }))
+        return result
+      } finally {
+        setBusyKey(null)
+      }
+    },
+    [isAuthenticated],
+  )
+
+  return {
+    map,
+    busyKey,
+    isAuthenticated,
+    statusFor: (title: TitleCard) =>
+      map[shelfKey(title.mediaType, title.id)] ?? {
+        watched: false,
+        want_to_watch: false,
+        favorite: false,
+      },
+    toggle,
+  }
 }

@@ -324,7 +324,7 @@ export function useSimilarTitles(
   )
 }
 
-/** IMDb rating via OMDb when VITE_OMDB_API_KEY is set. */
+/** IMDb rating via Laravel → OMDb (optional OMDB_API_KEY on the server). */
 export function useImdbRating(imdbId: string | null) {
   return useFetch(
     async (signal) => {

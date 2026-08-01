@@ -3,6 +3,9 @@ import { useSearchParams } from 'react-router-dom'
 import SearchFilters, { type SearchFilterValues } from '../components/SearchFilters'
 import ResultRow from '../components/ResultRow'
 import { useBrowse, useGenres } from '../hooks/useMovies'
+import { useShelfStatusMap } from '../hooks/useShelf'
+import { shelfKey } from '../api/shelf'
+import { useToast } from '../components/ToastProvider'
 import {
   clearFiltersKeepQuery,
   parseSearchParams,
@@ -29,6 +32,9 @@ export default function SearchPage() {
     sort: state.sort,
     page: state.page,
   })
+  const titles = data?.titles ?? []
+  const shelf = useShelfStatusMap(titles)
+  const { toast } = useToast()
 
   function patch(next: Partial<ReturnType<typeof parseSearchParams>>) {
     const merged = { ...state, ...next }
@@ -129,6 +135,13 @@ export default function SearchPage() {
                   key={`${title.mediaType}-${title.id}`}
                   title={title}
                   genres={genres ?? []}
+                  status={shelf.statusFor(title)}
+                  busy={shelf.busyKey === shelfKey(title.mediaType, title.id)}
+                  canEdit={shelf.isAuthenticated}
+                  onToggle={async (flag) => {
+                    await shelf.toggle(title, flag)
+                    toast('Shelf updated')
+                  }}
                 />
               ))}
             </div>

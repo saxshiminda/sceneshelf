@@ -105,14 +105,6 @@ export default function Header() {
                       Profile
                     </Link>
                   </MenuItem>
-                  <MenuItem>
-                    <Link
-                      to="/profile/settings"
-                      className="block px-3 py-2 text-sm text-fg data-focus:bg-elevated"
-                    >
-                      Settings
-                    </Link>
-                  </MenuItem>
                   <div className="my-1 border-t border-border" />
                   <MenuItem>
                     <button
@@ -186,13 +178,6 @@ export default function Header() {
                   className="block rounded-lg px-3 py-2.5 text-base text-fg hover:bg-elevated"
                 >
                   Profile
-                </Link>
-                <Link
-                  to="/profile/settings"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block rounded-lg px-3 py-2.5 text-base text-fg hover:bg-elevated"
-                >
-                  Settings
                 </Link>
                 <button
                   type="button"
