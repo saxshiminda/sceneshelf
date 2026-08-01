@@ -9,6 +9,7 @@ import {
   type ToggleShelfPayload,
 } from '../api/shelf'
 import { ApiError } from '../lib/http'
+import { inflightDedupe } from '../lib/inflight'
 import { useAuth } from '../auth/AuthProvider'
 import type { MediaType } from '../types/tmdb'
 
@@ -27,7 +28,7 @@ export function useShelfList(list: ShelfList) {
     setIsLoading(true)
     setError(null)
     try {
-      const next = await getShelf(list)
+      const next = await inflightDedupe(`shelf:list:${list}`, () => getShelf(list))
       setItems(next)
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Failed to load shelf'))
@@ -39,8 +40,31 @@ export function useShelfList(list: ShelfList) {
 
   useEffect(() => {
     if (authLoading) return
-    void reload()
-  }, [authLoading, reload])
+    let cancelled = false
+    ;(async () => {
+      if (!isAuthenticated) {
+        setItems([])
+        setIsLoading(false)
+        return
+      }
+      setIsLoading(true)
+      setError(null)
+      try {
+        const next = await inflightDedupe(`shelf:list:${list}`, () => getShelf(list))
+        if (!cancelled) setItems(next)
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err : new Error('Failed to load shelf'))
+          setItems([])
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false)
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [authLoading, isAuthenticated, list])
 
   return { items, isLoading: authLoading || isLoading, error, reload }
 }
@@ -68,7 +92,9 @@ export function useShelfStatus(mediaType: MediaType | null, tmdbId: number | nul
     setIsLoading(true)
     ;(async () => {
       try {
-        const item = await getShelfStatus(mediaType, tmdbId)
+        const item = await inflightDedupe(`shelf:status:${mediaType}:${tmdbId}`, () =>
+          getShelfStatus(mediaType, tmdbId),
+        )
         if (cancelled) return
         setStatus({
           watched: Boolean(item?.watched),

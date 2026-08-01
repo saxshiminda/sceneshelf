@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
+import { inflightDedupe } from '../lib/inflight'
 
-/** Fetches data when deps change; aborts in-flight requests on cleanup. */
+/** Fetches data when deps change; dedupes Strict Mode double-mounts. */
 
 export interface UseFetchResult<T> {
   data: T | null
@@ -22,14 +23,13 @@ export function useFetch<T>(
   fetcherRef.current = fetcher
 
   useEffect(() => {
-    const controller = new AbortController()
     let cancelled = false
+    const key = `fetch:${tick}:${JSON.stringify(deps)}`
 
     setIsLoading(true)
     setError(null)
 
-    fetcherRef
-      .current(controller.signal)
+    inflightDedupe(key, () => fetcherRef.current(new AbortController().signal))
       .then((result) => {
         if (cancelled) return
         setData(result)
@@ -46,7 +46,7 @@ export function useFetch<T>(
 
     return () => {
       cancelled = true
-      controller.abort()
+      // Do not abort — Strict Mode remount must reuse the same in-flight request.
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deps come from the caller
   }, [...deps, tick])

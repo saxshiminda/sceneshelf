@@ -22,9 +22,24 @@ import {
 } from '../api/auth'
 import { posterUrl } from '../api/movies'
 import { ApiError } from '../lib/http'
+import { clearInflight, inflightDedupe } from '../lib/inflight'
 import type { LoginPayload, RegisterPayload, User } from '../types/auth'
 
 const TMDB_SESSION_KEY = 'sceneshelf_tmdb_session_id'
+const AUTH_BOOTSTRAP_KEY = 'auth:bootstrap'
+
+async function bootstrapUser(): Promise<User | null> {
+  return inflightDedupe(AUTH_BOOTSTRAP_KEY, async () => {
+    try {
+      return await getUser()
+    } catch (err) {
+      if (err instanceof ApiError && (err.status === 401 || err.status === 419)) {
+        return null
+      }
+      throw err
+    }
+  })
+}
 
 interface AuthContextValue {
   user: User | null
@@ -84,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const applyTmdbSession = useCallback(async (sessionId: string) => {
     const next = await syncTmdbSession(sessionId)
+    clearInflight(AUTH_BOOTSTRAP_KEY)
     persistTmdbSession(sessionId)
     setTmdbSessionId(sessionId)
     setUser(next)
@@ -93,15 +109,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false
     ;(async () => {
       try {
-        const next = await getUser()
+        const next = await bootstrapUser()
         if (!cancelled) setUser(next)
-      } catch (err) {
-        if (!cancelled) {
-          setUser(null)
-          if (!(err instanceof ApiError) || (err.status !== 401 && err.status !== 419)) {
-            // leave logged out
-          }
-        }
+      } catch {
+        if (!cancelled) setUser(null)
       } finally {
         if (!cancelled) setIsLoading(false)
       }
@@ -115,6 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (payload: LoginPayload) => {
       await apiLogin(payload)
+      clearInflight(AUTH_BOOTSTRAP_KEY)
       await refreshUser()
     },
     [refreshUser],
@@ -123,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useCallback(
     async (payload: RegisterPayload) => {
       await apiRegister(payload)
+      clearInflight(AUTH_BOOTSTRAP_KEY)
       await refreshUser()
     },
     [refreshUser],
@@ -149,6 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       if (!(err instanceof ApiError)) throw err
     } finally {
+      clearInflight(AUTH_BOOTSTRAP_KEY)
       setUser(null)
       persistTmdbSession(null)
       setTmdbSessionId(null)
