@@ -33,6 +33,19 @@ export function getUser(options?: RequestOptions) {
   return backend.get<User>('/api/user', options)
 }
 
+export async function updateProfile(
+  payload: {
+    name: string
+    password?: string
+    password_confirmation?: string
+    current_password?: string
+  },
+  options?: RequestOptions,
+) {
+  await getCsrfCookie(options)
+  return backend.patch<User>('/api/user', payload, options)
+}
+
 export async function uploadProfilePhoto(file: File, options?: RequestOptions) {
   await getCsrfCookie(options)
   const body = new FormData()

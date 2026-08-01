@@ -18,6 +18,7 @@ import {
   register as apiRegister,
   syncTmdbSession,
   tmdbApproveUrl,
+  updateProfile as apiUpdateProfile,
   uploadProfilePhoto,
 } from '../api/auth'
 import { posterUrl } from '../api/movies'
@@ -57,6 +58,12 @@ interface AuthContextValue {
   completeRedirectLogin: (requestToken: string) => Promise<void>
   logout: () => Promise<void>
   refreshUser: () => Promise<void>
+  updateProfile: (payload: {
+    name: string
+    password?: string
+    password_confirmation?: string
+    current_password?: string
+  }) => Promise<void>
   uploadAvatar: (file: File) => Promise<void>
   removeAvatar: () => Promise<void>
 }
@@ -176,6 +183,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [tmdbSessionId])
 
+  const updateProfile = useCallback(
+    async (payload: {
+      name: string
+      password?: string
+      password_confirmation?: string
+      current_password?: string
+    }) => {
+      const next = await apiUpdateProfile(payload)
+      setUser(next)
+    },
+    [],
+  )
+
   const uploadAvatar = useCallback(async (file: File) => {
     const next = await uploadProfilePhoto(file)
     setUser(next)
@@ -199,6 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completeRedirectLogin,
       logout,
       refreshUser,
+      updateProfile,
       uploadAvatar,
       removeAvatar,
     }),
@@ -212,6 +233,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       completeRedirectLogin,
       logout,
       refreshUser,
+      updateProfile,
       uploadAvatar,
       removeAvatar,
     ],

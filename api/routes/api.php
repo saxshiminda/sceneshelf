@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\OmdbController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfilePhotoController;
 use App\Http\Controllers\ShelfItemController;
 use App\Http\Controllers\TmdbController;
@@ -19,6 +20,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+    Route::patch('/user', [ProfileController::class, 'update']);
 
     Route::post('/user/profile-photo', [ProfilePhotoController::class, 'update']);
     Route::delete('/user/profile-photo', [ProfilePhotoController::class, 'destroy']);
