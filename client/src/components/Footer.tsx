@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import Logo from './Logo'
 
 const links = [
   { name: 'Discover', href: '/home' },
@@ -13,13 +14,8 @@ export default function Footer() {
     <footer className="mt-auto border-t border-border">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 px-5 py-10 sm:flex-row sm:items-start sm:justify-between lg:px-8">
         <div className="max-w-xs">
-          <Link
-            to="/home"
-            className="font-display text-lg text-fg transition hover:text-brass"
-          >
-            SceneShelf
-          </Link>
-          <p className="mt-2 text-sm leading-relaxed text-fg-muted">
+          <Logo size="md" />
+          <p className="mt-3 text-sm leading-relaxed text-fg-muted">
             Your private cinema shelf.
           </p>
         </div>

@@ -12,6 +12,7 @@ import {
 import type { Navigation } from '../../interfaces/Navigation'
 import { useTheme } from '../../theme/ThemeProvider'
 import { useAuth } from '../../auth/AuthProvider'
+import Logo from '../Logo'
 
 const navigation: Navigation[] = [
   { name: 'Discover', href: '/home' },
@@ -71,9 +72,10 @@ export default function Header() {
           <div className="flex items-center gap-10 lg:gap-14">
             <Link
               to="/home"
-              className="shrink-0 font-display text-xl text-fg transition hover:text-brass"
+              className="inline-flex shrink-0 items-center gap-2.5 transition hover:opacity-90"
             >
-              SceneShelf
+              <Logo size="sm" to={null} alt="" />
+              <span className="font-display text-xl text-fg">SceneShelf</span>
             </Link>
 
             <div className="hidden items-center gap-8 md:flex">
@@ -190,10 +192,11 @@ export default function Header() {
           <div className="flex items-center justify-between">
             <Link
               to="/home"
-              className="font-display text-xl text-fg"
+              className="inline-flex items-center gap-2.5"
               onClick={() => setMobileMenuOpen(false)}
             >
-              SceneShelf
+              <Logo size="sm" to={null} alt="" />
+              <span className="font-display text-xl text-fg">SceneShelf</span>
             </Link>
             <button
               type="button"

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTrending } from '../hooks/useMovies'
 import PosterRow from '../components/PosterRow'
+import Logo from '../components/Logo'
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -18,10 +19,9 @@ export default function HomePage() {
   return (
     <div className="mx-auto max-w-6xl px-5 pb-20 lg:px-8">
       <section className="flex flex-col items-center px-2 pt-16 pb-14 text-center sm:pt-24 sm:pb-20">
-        <h1 className="font-display text-5xl leading-tight text-fg sm:text-6xl md:text-7xl">
-          SceneShelf
-        </h1>
-        <p className="mt-4 text-base text-fg-secondary sm:text-lg">
+        <Logo size="lg" to={null} className="mx-auto" />
+        <h1 className="sr-only">SceneShelf</h1>
+        <p className="mt-5 text-base text-fg-secondary sm:text-lg">
           Your private cinema shelf.
         </p>
 
