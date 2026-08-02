@@ -5,7 +5,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProfilePhotoController;
 use App\Http\Controllers\ShelfItemController;
 use App\Http\Controllers\TmdbController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('tmdb')->group(function () {
@@ -17,9 +16,7 @@ Route::prefix('tmdb')->group(function () {
 Route::get('/omdb/rating', [OmdbController::class, 'rating']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
+    Route::get('/user', [ProfileController::class, 'show']);
     Route::patch('/user', [ProfileController::class, 'update']);
 
     Route::post('/user/profile-photo', [ProfilePhotoController::class, 'update']);

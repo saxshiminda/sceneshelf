@@ -11,6 +11,14 @@ use Illuminate\Validation\ValidationException;
 class ProfileController extends Controller
 {
     /**
+     * Return the authenticated user.
+     */
+    public function show(Request $request): JsonResponse
+    {
+        return response()->json($request->user());
+    }
+
+    /**
      * Update the authenticated user's name and optional password.
      */
     public function update(Request $request): JsonResponse
